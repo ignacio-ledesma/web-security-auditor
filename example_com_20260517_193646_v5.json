@@ -1,0 +1,959 @@
+{
+  "url": "https://example.com",
+  "hostname": "example.com",
+  "sections": [
+    {
+      "name": "Puertos y WAF",
+      "score": 90,
+      "findings": [
+        {
+          "severity": "ok",
+          "title": "Sin puertos peligrosos expuestos",
+          "description": "No se detectaron bases de datos ni servicios de administración expuestos.",
+          "recommendation": "",
+          "cwe": null
+        },
+        {
+          "severity": "warning",
+          "title": "CDN (Cloudflare) no fuerza HTTPS",
+          "description": "El CDN (Cloudflare) está activo pero no redirige HTTP a HTTPS automáticamente. Los usuarios que accedan por HTTP no serán protegidos por el cifrado.",
+          "recommendation": "En el panel de Cloudflare, activar 'Always Use HTTPS' o equivalente.",
+          "cwe": "CWE-319"
+        }
+      ],
+      "info_table": [
+        {
+          "label": "Puertos abiertos detectados",
+          "value": "80/HTTP, 443/HTTPS, 8080/HTTP-Alt, 8443/HTTPS-Alt"
+        },
+        {
+          "label": "Redirección HTTP→HTTPS",
+          "value": "⚠️ CDN activo pero sin forzar HTTPS"
+        },
+        {
+          "label": "Timeout anti-tarpitting",
+          "value": "1.5s por puerto"
+        }
+      ],
+      "open_ports": [
+        "80/HTTP",
+        "443/HTTPS",
+        "8080/HTTP-Alt",
+        "8443/HTTPS-Alt"
+      ]
+    },
+    {
+      "name": "Cabeceras HTTP",
+      "score": 50,
+      "findings": [
+        {
+          "severity": "warning",
+          "title": "Content-Security-Policy ausente",
+          "description": "La cabecera Content-Security-Policy no está configurada. Nota: el WAF activo (Cloudflare) mitiga parcialmente este riesgo, pero configurar la cabecera sigue siendo una buena práctica.",
+          "recommendation": "Agregar la cabecera 'content-security-policy' en la configuración del servidor.",
+          "cwe": "CWE-693"
+        },
+        {
+          "severity": "critical",
+          "title": "HSTS ausente",
+          "description": "La cabecera HSTS no está configurada.",
+          "recommendation": "Agregar la cabecera 'strict-transport-security' en la configuración del servidor.",
+          "cwe": "CWE-319"
+        },
+        {
+          "severity": "warning",
+          "title": "X-Frame-Options ausente",
+          "description": "La cabecera X-Frame-Options no está configurada. Nota: el WAF activo (Cloudflare) mitiga parcialmente este riesgo, pero configurar la cabecera sigue siendo una buena práctica.",
+          "recommendation": "Agregar la cabecera 'x-frame-options' en la configuración del servidor.",
+          "cwe": "CWE-1021"
+        },
+        {
+          "severity": "warning",
+          "title": "X-Content-Type-Options ausente",
+          "description": "La cabecera X-Content-Type-Options no está configurada.",
+          "recommendation": "Agregar la cabecera 'x-content-type-options' en la configuración del servidor.",
+          "cwe": "CWE-16"
+        },
+        {
+          "severity": "warning",
+          "title": "Referrer-Policy ausente",
+          "description": "La cabecera Referrer-Policy no está configurada.",
+          "recommendation": "Agregar la cabecera 'referrer-policy' en la configuración del servidor.",
+          "cwe": "CWE-116"
+        },
+        {
+          "severity": "warning",
+          "title": "Permissions-Policy ausente",
+          "description": "La cabecera Permissions-Policy no está configurada.",
+          "recommendation": "Agregar la cabecera 'permissions-policy' en la configuración del servidor.",
+          "cwe": "CWE-284"
+        },
+        {
+          "severity": "info",
+          "title": "Cross-Origin-Opener-Policy ausente",
+          "description": "La cabecera Cross-Origin-Opener-Policy no está configurada.",
+          "recommendation": "Agregar la cabecera 'cross-origin-opener-policy' en la configuración del servidor.",
+          "cwe": null
+        },
+        {
+          "severity": "info",
+          "title": "Cross-Origin-Embedder-Policy ausente",
+          "description": "La cabecera Cross-Origin-Embedder-Policy no está configurada.",
+          "recommendation": "Agregar la cabecera 'cross-origin-embedder-policy' en la configuración del servidor.",
+          "cwe": null
+        },
+        {
+          "severity": "info",
+          "title": "X-XSS-Protection (obsoleto) ausente",
+          "description": "La cabecera X-XSS-Protection (obsoleto) no está configurada.",
+          "recommendation": "No es necesario configurarla. Está deprecada en navegadores modernos y puede introducir vulnerabilidades XSS en lugar de prevenirlas.",
+          "cwe": null
+        },
+        {
+          "severity": "info",
+          "title": "Cabecera 'server' expuesta (valor controlado por CDN)",
+          "description": "Valor: 'cloudflare' — este valor lo establece el CDN/proxy automáticamente y no puede ser modificado por el administrador.",
+          "recommendation": "No requiere acción. Es un comportamiento normal del CDN.",
+          "cwe": null
+        },
+        {
+          "severity": "ok",
+          "title": "WAF detectado: Cloudflare",
+          "description": "Se detectó un firewall de aplicaciones web (Cloudflare) protegiendo el sitio. Nota: Este sitio está protegido por Cloudflare WAF. Algunas pruebas se ajustaron para evitar bloqueos — los resultados reflejan lo visible públicamente.",
+          "recommendation": "",
+          "cwe": null
+        },
+        {
+          "severity": "info",
+          "title": "Cache-Control no configurado",
+          "description": "Sin Cache-Control el navegador y proxies pueden cachear respuestas con datos sensibles.",
+          "recommendation": "Configurar Cache-Control: no-store en páginas autenticadas o con datos personales.",
+          "cwe": null
+        }
+      ],
+      "info_table": [
+        {
+          "label": "Content-Security-Policy",
+          "value": "❌ AUSENTE"
+        },
+        {
+          "label": "HSTS",
+          "value": "❌ AUSENTE"
+        },
+        {
+          "label": "X-Frame-Options",
+          "value": "❌ AUSENTE"
+        },
+        {
+          "label": "X-Content-Type-Options",
+          "value": "❌ AUSENTE"
+        },
+        {
+          "label": "Referrer-Policy",
+          "value": "❌ AUSENTE"
+        },
+        {
+          "label": "Permissions-Policy",
+          "value": "❌ AUSENTE"
+        },
+        {
+          "label": "Cross-Origin-Opener-Policy",
+          "value": "❌ AUSENTE"
+        },
+        {
+          "label": "Cross-Origin-Embedder-Policy",
+          "value": "❌ AUSENTE"
+        },
+        {
+          "label": "X-XSS-Protection (obsoleto)",
+          "value": "❌ AUSENTE"
+        },
+        {
+          "label": "Status HTTP",
+          "value": "200"
+        },
+        {
+          "label": "Redirect chain",
+          "value": "https://example.com/"
+        },
+        {
+          "label": "WAF detectado",
+          "value": "✓ Cloudflare"
+        },
+        {
+          "label": "Cache-Control",
+          "value": "No configurado"
+        }
+      ]
+    },
+    {
+      "name": "SSL / TLS",
+      "score": 85,
+      "findings": [
+        {
+          "severity": "ok",
+          "title": "Protocolo seguro negociado: TLSv1.3",
+          "description": "TLS 1.2+ está en uso.",
+          "recommendation": "",
+          "cwe": null
+        },
+        {
+          "severity": "ok",
+          "title": "Cifrado fuerte: 256 bits",
+          "description": "Suite: TLS_AES_256_GCM_SHA384",
+          "recommendation": "",
+          "cwe": null
+        },
+        {
+          "severity": "warning",
+          "title": "Certificado expira pronto (44 días)",
+          "description": "Menos de 60 días de validez. Se recomienda renovar con anticipación.",
+          "recommendation": "Renovar el certificado antes de que expire.",
+          "cwe": "CWE-298"
+        },
+        {
+          "severity": "ok",
+          "title": "Certificado SSL presente",
+          "description": "El sitio tiene SSL configurado.",
+          "recommendation": "",
+          "cwe": null
+        },
+        {
+          "severity": "ok",
+          "title": "HTTP/2 soportado vía CDN (Cloudflare)",
+          "description": "Cloudflare provee HTTP/2 automáticamente. No se detectó el header Alt-Svc pero el protocolo está activo.",
+          "recommendation": "",
+          "cwe": null
+        }
+      ],
+      "info_table": [
+        {
+          "label": "Protocolo TLS (negociado)",
+          "value": "TLSv1.3"
+        },
+        {
+          "label": "TLS 1.0 aceptado",
+          "value": "✓ Rechazado"
+        },
+        {
+          "label": "TLS 1.1 aceptado",
+          "value": "✓ Rechazado"
+        },
+        {
+          "label": "Cipher suite activa",
+          "value": "TLS_AES_256_GCM_SHA384 (256 bits)"
+        },
+        {
+          "label": "Emisor",
+          "value": "CN=Cloudflare TLS Issuing ECC CA 1,O=CLOUDFLARE\\, INC.,C=US"
+        },
+        {
+          "label": "Expira",
+          "value": "2026-07-01 (44 días)"
+        },
+        {
+          "label": "Válido desde",
+          "value": "2026-04-02"
+        },
+        {
+          "label": "SAN (dominios cubiertos)",
+          "value": "example.com, *.example.com"
+        },
+        {
+          "label": "Algoritmo de firma",
+          "value": "SHA256"
+        },
+        {
+          "label": "HTTP/2",
+          "value": "✓ Soportado por Cloudflare"
+        }
+      ]
+    },
+    {
+      "name": "DNS / Email",
+      "score": 95,
+      "findings": [
+        {
+          "severity": "ok",
+          "title": "SPF configurado",
+          "description": "v=spf1 -all",
+          "recommendation": "",
+          "cwe": null
+        },
+        {
+          "severity": "warning",
+          "title": "SPF configurado sin mecanismos de envío (bloquea TODO el correo)",
+          "description": "El registro SPF es 'v=spf1 -all' y no autoriza ningún servidor (sin include:, ip4:, ip6:, a:, mx:). Esto bloquea cualquier email saliente del dominio, incluido el correo legítimo.",
+          "recommendation": "Agregar los servidores de correo autorizados. Ej: 'v=spf1 include:_spf.google.com ~all' para Google Workspace.",
+          "cwe": "CWE-345"
+        },
+        {
+          "severity": "ok",
+          "title": "DMARC configurado",
+          "description": "v=DMARC1;p=reject;sp=reject;adkim=s;aspf=s",
+          "recommendation": "",
+          "cwe": null
+        },
+        {
+          "severity": "ok",
+          "title": "DKIM configurado (selector: default)",
+          "description": "Las firmas digitales de email están habilitadas.",
+          "recommendation": "",
+          "cwe": null
+        },
+        {
+          "severity": "ok",
+          "title": "DNSSEC habilitado",
+          "description": "Las respuestas DNS están firmadas digitalmente.",
+          "recommendation": "",
+          "cwe": null
+        },
+        {
+          "severity": "info",
+          "title": "Sin registro CAA",
+          "description": "Cualquier CA puede emitir certificados para este dominio.",
+          "recommendation": "Agregar registro CAA para limitar qué CAs pueden emitir certificados.",
+          "cwe": null
+        },
+        {
+          "severity": "info",
+          "title": "2 subdominios detectados vía RapidDNS",
+          "description": "Encontrados: 20mail2.example.com, www.example.com",
+          "recommendation": "Revisar que todos los subdominios expuestos sean intencionales y estén correctamente asegurados.",
+          "cwe": null
+        }
+      ],
+      "info_table": [
+        {
+          "label": "SPF",
+          "value": "v=spf1 -all"
+        },
+        {
+          "label": "DMARC",
+          "value": "v=DMARC1;p=reject;sp=reject;adkim=s;aspf=s"
+        },
+        {
+          "label": "DKIM",
+          "value": "✓ Selector 'default' encontrado"
+        },
+        {
+          "label": "DNSSEC",
+          "value": "✓ Habilitado"
+        },
+        {
+          "label": "CAA",
+          "value": "No configurado"
+        },
+        {
+          "label": "MX",
+          "value": "Sin servidores de email"
+        },
+        {
+          "label": "IPs del servidor",
+          "value": "104.20.23.154, 172.66.147.243"
+        },
+        {
+          "label": "Subdominios (RapidDNS) — 2 total",
+          "value": "20mail2.example.com, www.example.com"
+        }
+      ]
+    },
+    {
+      "name": "Tecnologías",
+      "score": 100,
+      "findings": [
+        {
+          "severity": "info",
+          "title": "2 tecnologías identificadas",
+          "description": "Stack detectado: Cloudflare, Cloudflare CDN",
+          "recommendation": "Verificar que todas las tecnologías estén en sus últimas versiones.",
+          "cwe": null
+        }
+      ],
+      "info_table": [
+        {
+          "label": "Tecnologías detectadas",
+          "value": "Cloudflare, Cloudflare CDN"
+        },
+        {
+          "label": "Versiones expuestas",
+          "value": "Ninguna detectada"
+        },
+        {
+          "label": "Server header",
+          "value": "cloudflare"
+        },
+        {
+          "label": "X-Powered-By",
+          "value": "Oculto (buena práctica)"
+        }
+      ],
+      "technologies": [
+        "Cloudflare",
+        "Cloudflare CDN"
+      ]
+    },
+    {
+      "name": "Contenido HTML",
+      "score": 100,
+      "findings": [
+        {
+          "severity": "ok",
+          "title": "Sin mixed content detectado",
+          "description": "Todos los recursos parecen cargarse por HTTPS.",
+          "recommendation": "",
+          "cwe": null
+        }
+      ],
+      "info_table": [
+        {
+          "label": "Mixed content",
+          "value": "✓ Ninguno"
+        },
+        {
+          "label": "Formularios detectados",
+          "value": "0 total, 0 con action HTTP inseguro"
+        },
+        {
+          "label": "Emails expuestos en HTML",
+          "value": "✓ Ninguno detectado"
+        },
+        {
+          "label": "Campos password",
+          "value": "0 detectado(s)"
+        },
+        {
+          "label": "Comentarios sospechosos",
+          "value": "✓ Ninguno"
+        },
+        {
+          "label": "iframes",
+          "value": "0"
+        },
+        {
+          "label": "Open Redirect (pasivo)",
+          "value": "✓ Sin parámetros de redirección externos detectados"
+        }
+      ]
+    },
+    {
+      "name": "Archivos públicos",
+      "score": 95,
+      "findings": [
+        {
+          "severity": "info",
+          "title": "security.txt ausente",
+          "description": "No hay política de divulgación responsable de vulnerabilidades (RFC 9116).",
+          "recommendation": "Crear /.well-known/security.txt con contacto y política.",
+          "cwe": null
+        }
+      ],
+      "info_table": [
+        {
+          "label": "robots.txt",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "sitemap.xml",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "security.txt (RFC 9116)",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "security.txt (raíz)",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "OpenID Configuration (info disclosure)",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "OAuth Server Metadata (info disclosure)",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "Apple App Site Association",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "Android Asset Links",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "MTA-STS Policy (email)",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "crossdomain.xml",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "clientaccesspolicy.xml",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": ".git/HEAD ⚠️ PELIGROSO",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": ".git/config ⚠️ PELIGROSO",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": ".svn/entries ⚠️ PELIGROSO",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": ".hg/hgrc ⚠️ PELIGROSO",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": ".env ⚠️ MUY PELIGROSO",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": ".env.local ⚠️ PELIGROSO",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": ".env.production ⚠️ PELIGROSO",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": ".env.backup ⚠️ PELIGROSO",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "config.php",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "wp-config.php.bak ⚠️ PELIGROSO",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": ".vscode/settings.json ⚠️",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": ".idea/workspace.xml ⚠️",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "docker-compose.yml ⚠️ PELIGROSO",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "docker-compose.yaml ⚠️ PELIGROSO",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "Dockerfile ⚠️",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "package.json ⚠️",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "composer.json ⚠️",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "requirements.txt ⚠️",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "backup.zip ⚠️ PELIGROSO",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "backup.sql ⚠️ PELIGROSO",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "dump.sql ⚠️ PELIGROSO",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "database.sql ⚠️ PELIGROSO",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "db.sql ⚠️ PELIGROSO",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": ".DS_Store ⚠️",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "phpinfo.php ⚠️ PELIGROSO",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": ".htaccess",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "wp-login.php",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "/admin",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "Apache server-status",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "error.log ⚠️",
+          "value": "No disponible (404)"
+        },
+        {
+          "label": "debug.log ⚠️",
+          "value": "No disponible (404)"
+        }
+      ]
+    },
+    {
+      "name": "Secretos JS",
+      "score": null,
+      "score_display": "—",
+      "findings": [],
+      "info_table": [
+        {
+          "label": "Scripts JS propios detectados",
+          "value": "0"
+        },
+        {
+          "label": "Scripts JS analizados",
+          "value": "0"
+        },
+        {
+          "label": "Secretos detectados",
+          "value": "✓ Ninguno"
+        }
+      ],
+      "scripts_scanned": 0,
+      "not_evaluated": true
+    },
+    {
+      "name": "Integridad JS (SRI)",
+      "score": 100,
+      "findings": [
+        {
+          "severity": "ok",
+          "title": "Sin scripts externos detectados",
+          "description": "No se encontraron scripts de CDN externos.",
+          "recommendation": "",
+          "cwe": null
+        }
+      ],
+      "info_table": [
+        {
+          "label": "Scripts externos detectados",
+          "value": "0"
+        },
+        {
+          "label": "Scripts con SRI",
+          "value": "0"
+        },
+        {
+          "label": "Scripts sin SRI",
+          "value": "✓ 0"
+        }
+      ]
+    },
+    {
+      "name": "Reputación",
+      "score": 97,
+      "findings": [
+        {
+          "severity": "ok",
+          "title": "URLScan.io: sin amenazas (10000 escaneos)",
+          "description": "Último escaneo: 2026-05-17T22:12:26.989Z",
+          "recommendation": "",
+          "cwe": null
+        },
+        {
+          "severity": "ok",
+          "title": "Sin entradas en listas negras DNSBL verificadas",
+          "description": "La IP 104.20.23.154 no aparece en las listas negras principales verificadas.",
+          "recommendation": "",
+          "cwe": null
+        },
+        {
+          "severity": "info",
+          "title": "Dominio expira en 87 días",
+          "description": "El dominio vence en menos de 3 meses. Recordar renovarlo.",
+          "recommendation": "Activar la renovación automática en el registrar.",
+          "cwe": null
+        },
+        {
+          "severity": "ok",
+          "title": "Dominio establecido (30 años)",
+          "description": "",
+          "recommendation": "",
+          "cwe": null
+        },
+        {
+          "severity": "info",
+          "title": "Dominio NO está en la lista HSTS Preload (estado: unknown)",
+          "description": "El HSTS Preload list hace que los navegadores fuercen HTTPS incluso antes de la primera visita, protegiéndola del primer request sin cifrar.",
+          "recommendation": "Si el sitio tiene HSTS configurado correctamente, solicitar inclusión en: hstspreload.org",
+          "cwe": null
+        },
+        {
+          "severity": "info",
+          "title": "Verificación adicional recomendada",
+          "description": "Para análisis completo de reputación: Google Safe Browsing, VirusTotal y Shodan.",
+          "recommendation": "Crear cuentas gratuitas en: virustotal.com, shodan.io",
+          "cwe": null
+        }
+      ],
+      "info_table": [
+        {
+          "label": "URLScan.io",
+          "value": "10000 escaneos previos"
+        },
+        {
+          "label": "IP del sitio",
+          "value": "104.20.23.154"
+        },
+        {
+          "label": "Blacklists DNSBL",
+          "value": "✓ No listado"
+        },
+        {
+          "label": "Registro dominio",
+          "value": "1995-08-14T04:00:00Z"
+        },
+        {
+          "label": "Expiración dominio",
+          "value": "2026-08-13T04:00:00Z"
+        },
+        {
+          "label": "Días hasta expiración dominio",
+          "value": "87 días"
+        },
+        {
+          "label": "Antigüedad del dominio",
+          "value": "11234 días (30 años)"
+        },
+        {
+          "label": "HSTS Preload status",
+          "value": "unknown"
+        }
+      ]
+    },
+    {
+      "name": "Login",
+      "score": null,
+      "score_display": "—",
+      "findings": [
+        {
+          "severity": "info",
+          "title": "No se detectó página de login en rutas comunes",
+          "description": "No se encontró formulario de login en las rutas estándar. Puede existir en una ruta personalizada.",
+          "recommendation": "",
+          "cwe": null
+        }
+      ],
+      "info_table": [
+        {
+          "label": "Página de login",
+          "value": "No detectada en rutas comunes"
+        }
+      ],
+      "not_evaluated": true
+    }
+  ],
+  "overall_score": 80,
+  "summary": "Buena seguridad general con algunas áreas que mejorar.",
+  "action_plan": [
+    {
+      "title": "Certificado expira pronto (44 días)",
+      "urgency": "URGENTE — Hacer en las próximas 24 horas",
+      "impact": "El candado de seguridad venció o está por vencer. Los visitantes verán advertencia de 'sitio no seguro'.",
+      "steps": [
+        "1. Contactar al proveedor de hosting.",
+        "2. Renovar el certificado SSL (Let's Encrypt es gratuito y automático).",
+        "3. Verificar que el sitio muestre el candado verde."
+      ]
+    },
+    {
+      "title": "CDN (Cloudflare) no fuerza HTTPS",
+      "urgency": "IMPORTANTE — Hacer esta semana",
+      "impact": "El CDN está activo pero los usuarios que accedan por HTTP no tendrán cifrado.",
+      "steps": [
+        "1. Ingresar al panel de Cloudflare (o el CDN correspondiente).",
+        "2. Ir a SSL/TLS → Edge Certificates.",
+        "3. Activar 'Always Use HTTPS'.",
+        "4. Verificar que http://tudominio.com redirija automáticamente a https://.",
+        "5. Re-auditar el sitio para confirmar la corrección."
+      ]
+    },
+    {
+      "title": "Content-Security-Policy ausente",
+      "urgency": "IMPORTANTE — Hacer esta semana",
+      "impact": "Cabeceras de seguridad críticas ausentes que protegen contra XSS, MITM y Clickjacking.",
+      "steps": [
+        "1. Acceder al panel de configuración del servidor web (nginx, Apache, o CDN).",
+        "2. Agregar las cabeceras de seguridad faltantes.",
+        "3. Verificar con: securityheaders.com",
+        "4. Consultar al proveedor de hosting si no tiene acceso directo.",
+        "5. Re-auditar el sitio tras los cambios."
+      ]
+    },
+    {
+      "title": "Content-Security-Policy ausente",
+      "urgency": "RECOMENDADO — Próximo mes",
+      "impact": "Sin esta protección el sitio es más vulnerable a ataques de inyección de código (XSS).",
+      "steps": [
+        "1. Contactar al desarrollador web.",
+        "2. Agregar la cabecera Content-Security-Policy.",
+        "3. Usar el generador gratuito en: cspisawesome.com"
+      ]
+    },
+    {
+      "title": "SPF configurado sin mecanismos de envío (bloquea TODO el correo)",
+      "urgency": "RECOMENDADO — Próximo mes",
+      "impact": "Las direcciones de email visibles en la web son capturadas por bots de spam.",
+      "steps": [
+        "1. Reemplazar los emails visibles por un formulario de contacto.",
+        "2. Si el email debe mostrarse, usar JavaScript para ofuscarlo.",
+        "3. Considerar usar una dirección genérica (contacto@) en lugar de la personal."
+      ]
+    }
+  ],
+  "owasp_items": [
+    {
+      "finding": "Content-Security-Policy ausente",
+      "owasp": "A03:2021 – Injection / XSS",
+      "desc": "Sin CSP los ataques de inyección de scripts (XSS) son significativamente más fáciles.",
+      "sev": "warning",
+      "cwe": "CWE-693"
+    },
+    {
+      "finding": "HSTS ausente",
+      "owasp": "A02:2021 – Cryptographic Failures",
+      "desc": "HSTS protege contra ataques de degradación de cifrado.",
+      "sev": "critical",
+      "cwe": "CWE-319"
+    },
+    {
+      "finding": "X-Frame-Options ausente",
+      "owasp": "A04:2021 – Insecure Design",
+      "desc": "Sin X-Frame-Options el sitio es vulnerable a Clickjacking.",
+      "sev": "warning",
+      "cwe": "CWE-1021"
+    },
+    {
+      "finding": "X-Content-Type-Options ausente",
+      "owasp": "A05:2021 – Security Misconfiguration",
+      "desc": "Sin este header el navegador puede ejecutar archivos con MIME type incorrecto (MIME sniffing).",
+      "sev": "warning",
+      "cwe": "CWE-16"
+    },
+    {
+      "finding": "Referrer-Policy ausente",
+      "owasp": "A05:2021 – Security Misconfiguration",
+      "desc": "Sin Referrer-Policy las URLs internas se filtran a sitios de terceros en el header Referer.",
+      "sev": "warning",
+      "cwe": "CWE-116"
+    },
+    {
+      "finding": "Permissions-Policy ausente",
+      "owasp": "A05:2021 – Security Misconfiguration",
+      "desc": "Sin Permissions-Policy el sitio no controla qué APIs del navegador pueden usar los iframes.",
+      "sev": "warning",
+      "cwe": "CWE-284"
+    },
+    {
+      "finding": "Certificado expira pronto (44 días)",
+      "owasp": "A02:2021 – Cryptographic Failures",
+      "desc": "Los problemas con el certificado SSL comprometen la confidencialidad.",
+      "sev": "warning",
+      "cwe": "CWE-298"
+    }
+  ],
+  "compliance": {
+    "passed": 12,
+    "total": 16,
+    "percentage": 75,
+    "items": [
+      {
+        "label": "HTTPS habilitado",
+        "ok": true
+      },
+      {
+        "label": "HSTS configurado",
+        "ok": false
+      },
+      {
+        "label": "Content-Security-Policy",
+        "ok": false
+      },
+      {
+        "label": "X-Frame-Options",
+        "ok": false
+      },
+      {
+        "label": "X-Content-Type-Options",
+        "ok": false
+      },
+      {
+        "label": "SPF configurado",
+        "ok": true
+      },
+      {
+        "label": "DMARC configurado",
+        "ok": true
+      },
+      {
+        "label": "Sin puertos peligrosos",
+        "ok": true
+      },
+      {
+        "label": "Sin archivos sensibles expuestos",
+        "ok": true
+      },
+      {
+        "label": "Sin secretos en JS (N/A — sin scripts)",
+        "ok": null
+      },
+      {
+        "label": "TLS moderno (1.2+)",
+        "ok": true
+      },
+      {
+        "label": "Cookies seguras",
+        "ok": true
+      },
+      {
+        "label": "Sin versiones expuestas",
+        "ok": true
+      },
+      {
+        "label": "Sin mixed content",
+        "ok": true
+      },
+      {
+        "label": "WAF / Protección activa",
+        "ok": true
+      },
+      {
+        "label": "Scripts externos con SRI",
+        "ok": true
+      },
+      {
+        "label": "Sin open redirect detectado",
+        "ok": true
+      }
+    ]
+  }
+}

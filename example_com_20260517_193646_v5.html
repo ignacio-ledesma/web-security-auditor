@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Auditoría de Seguridad — example.com</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
+:root {
+  --bg:#0d0d10;--surface:#16161a;--surface2:#1e1e24;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --text:#e8e8f0;--text2:#9090a8;--text3:#5a5a72;
+  --accent:#5b8fff;--accent2:#3d6dff;
+  --red:#ff5b5b;--amber:#ffb340;--green:#40d498;--blue:#5b8fff;
+  --font:'DM Sans',system-ui,sans-serif;--mono:'DM Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
+.topbar{border-bottom:1px solid var(--border);padding:12px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(13,13,16,0.92);backdrop-filter:blur(12px);z-index:100}
+.topbar-left{display:flex;align-items:center;gap:14px}
+.topbar-logo{height:52px;width:auto;object-fit:contain;filter:brightness(1.1)}
+.topbar-brand{font-size:13px;font-weight:500;color:var(--text2);display:flex;align-items:center;gap:10px;letter-spacing:0.08em;text-transform:uppercase}
+.topbar-brand::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.topbar-meta{font-family:var(--mono);font-size:11px;color:var(--text3)}
+.hero{padding:48px 32px 0;max-width:1200px;margin:0 auto}
+.hero-url{font-family:var(--mono);font-size:13px;color:var(--text3);margin-bottom:8px}
+.hero-domain{font-size:32px;font-weight:300;color:var(--text);margin-bottom:32px;letter-spacing:-0.02em}
+.hero-domain strong{font-weight:600;color:#fff}
+.score-grid{display:grid;grid-template-columns:auto 1fr auto;gap:32px;margin-bottom:40px;align-items:start}
+.main-score{width:140px;height:140px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid #185FA5;background:#E6F1FB22;flex-shrink:0}
+.main-score .grade{font-size:40px;font-weight:600;color:#185FA5;line-height:1}
+.main-score .pts{font-size:13px;color:#185FA5;opacity:0.8;margin-top:4px;font-family:var(--mono)}
+.score-summary{font-size:14px;color:var(--text2);margin-bottom:20px;max-width:560px;line-height:1.7}
+.counters{display:flex;gap:16px;flex-wrap:wrap}
+.counter{padding:10px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface)}
+.counter .c-num{font-size:22px;font-weight:500;font-family:var(--mono)}
+.counter .c-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em}
+.c-red{color:var(--red)}.c-amber{color:var(--amber)}.c-green{color:var(--green)}.c-blue{color:var(--blue)}
+.cats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:48px}
+.cat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color 0.2s;cursor:pointer}
+.cat-card:hover{border-color:var(--border2)}
+.cat-card .cat-name{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px}
+.cat-card .cat-score{font-size:24px;font-weight:500;font-family:var(--mono)}
+.cat-card .cat-bar{height:3px;border-radius:2px;background:var(--surface2);margin-top:8px}
+.cat-card .cat-fill{height:100%;border-radius:2px;transition:width 1s ease}
+.nav-outer{border-top:1px solid var(--border);background:var(--surface);position:sticky;top:61px;z-index:90}
+.nav-outer-wrap{position:relative;display:flex;align-items:center}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 8px;display:flex;gap:2px;overflow-x:hidden;flex:1;scroll-behavior:smooth}
+.nav-arrow{background:var(--surface);border:none;color:var(--text2);font-size:18px;padding:0 10px;cursor:pointer;height:100%;position:relative;z-index:2;flex-shrink:0;transition:color 0.15s}
+.nav-arrow:hover{color:var(--text)}
+.nav-inner::-webkit-scrollbar{display:none}.nav-tab{padding:14px 18px;font-size:13px;font-family:var(--font);background:transparent;border:none;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;display:flex;align-items:center;gap:10px;white-space:nowrap;transition:color 0.15s,border-color 0.15s}
+.nav-tab:hover{color:var(--text)}.nav-tab.active{color:var(--text);border-bottom-color:var(--accent)}
+.tab-label{font-weight:400}.tab-score{font-family:var(--mono);font-size:11px;opacity:0.7}
+.content{max-width:1200px;margin:0 auto;padding:32px 32px 80px}
+.sec-panel{display:none}.sec-panel.active{display:block}
+.sec-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px}
+.sec-title{font-size:20px;font-weight:500;margin-bottom:4px}
+.sec-sub{font-size:12px;color:var(--text3)}
+.sec-score-badge{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;font-family:var(--mono);white-space:nowrap;flex-shrink:0}
+.info-tbl{width:100%;border-collapse:collapse;margin-bottom:24px;font-size:13px}
+.info-tbl tr{border-bottom:1px solid var(--border)}.info-tbl tr:last-child{border-bottom:none}
+.t-label{padding:10px 12px 10px 0;color:var(--text3);width:38%;vertical-align:top;font-size:12px}
+.t-val{padding:10px 0;color:var(--text2);word-break:break-all;font-family:var(--mono);font-size:12px}
+.tech-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px}
+.tech-pill{font-size:11px;padding:4px 10px;border-radius:20px;background:var(--surface2);color:var(--text2);border:1px solid var(--border);font-family:var(--mono)}
+.findings-list{display:flex;flex-direction:column;gap:8px}
+.finding{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color 0.15s}
+.finding:hover{border-color:var(--border2)}
+.finding-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.badge{font-size:10px;padding:3px 8px;border-radius:4px;font-weight:600;letter-spacing:0.06em;flex-shrink:0;font-family:var(--mono)}
+.cwe-badge{font-size:10px;padding:2px 7px;border-radius:4px;background:rgba(91,143,255,0.15);color:#5b8fff;font-family:var(--mono);border:1px solid rgba(91,143,255,0.3);flex-shrink:0}
+.finding-title{font-size:13px;font-weight:500;flex:1}
+.finding-desc{font-size:12px;color:var(--text3);margin-bottom:6px;line-height:1.6}
+.rec{font-size:12px;color:var(--accent);line-height:1.5;border-left:2px solid var(--accent2);padding-left:10px;margin-top:4px}
+.action-list{display:flex;flex-direction:column;gap:16px}
+.action-item{display:flex;gap:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;align-items:flex-start}
+.action-num{width:32px;height:32px;border-radius:50%;background:var(--accent2);color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.action-body{flex:1}
+.action-urgency{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px}
+.action-title{font-size:15px;font-weight:600;margin-bottom:6px}
+.action-impact{font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6}
+.action-steps{padding-left:18px;font-size:13px;color:var(--text2);line-height:1.8}
+.radar-wrap{display:flex;justify-content:center;margin-bottom:24px}
+.risk-legend{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.risk-cell{font-size:11px;padding:3px 10px;border-radius:4px;font-family:var(--mono)}
+.risk-low{background:rgba(64,212,152,0.2);color:#40d498}
+.risk-medium{background:rgba(255,179,64,0.2);color:#ffb340}
+.risk-high{background:rgba(255,100,64,0.2);color:#ff6440}
+.risk-critical{background:rgba(255,91,91,0.2);color:#ff5b5b}
+.comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+.comp-item{font-size:13px;padding:8px 12px;background:var(--surface);border-radius:6px;border:1px solid var(--border)}
+.footer{border-top:1px solid var(--border);padding:20px 32px;text-align:center;font-size:11px;color:var(--text3)}
+@media(max-width:640px){
+  .hero,.content,.topbar,.nav-inner{padding-left:16px;padding-right:16px}
+  .score-grid{grid-template-columns:1fr}
+  .main-score{width:100px;height:100px}
+  .hero-domain{font-size:22px}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-left">
+    
+    <div class="topbar-brand">Web Security Auditor v5.0 · Análisis pasivo</div>
+  </div>
+  <div class="topbar-meta">Auditor: Ignacio Nicolas Ledesma &nbsp;·&nbsp; Generado: 17/05/2026 19:36:46</div>
+</div>
+<div class="hero">
+  <p class="hero-url">Sitio auditado</p>
+  <h1 class="hero-domain"><strong>example.com</strong></h1>
+  <div class="score-grid">
+    <div class="main-score">
+      <div class="grade">B</div>
+      <div class="pts">80/100</div>
+    </div>
+    <div class="score-right">
+      <p class="score-summary">Buena seguridad general con algunas áreas que mejorar.</p>
+      <div class="counters">
+        <div class="counter"><div class="c-num c-red">1</div><div class="c-label">Críticos</div></div>
+        <div class="counter"><div class="c-num c-amber">8</div><div class="c-label">Advertencias</div></div>
+        <div class="counter"><div class="c-num c-green">15</div><div class="c-label">OK</div></div>
+        <div class="counter"><div class="c-num c-blue">13</div><div class="c-label">Info</div></div>
+      </div>
+    </div>
+    <div class="radar-wrap">
+      <canvas id="radarChart" width="260" height="260"></canvas>
+    </div>
+  </div>
+  <div class="cats-grid"><div class="cat-card" onclick="showSection('puertos_y_waf');document.getElementById('tab-puertos_y_waf').scrollIntoView({behavior:'smooth',block:'nearest'})">
+              <div class="cat-name">Puertos y WAF</div>
+              <div class="cat-score" style="color:#1D9E75">90</div>
+              <div class="cat-bar"><div class="cat-fill" style="width:90%;background:#1D9E75"></div></div>
+            </div><div class="cat-card" onclick="showSection('cabeceras_http');document.getElementById('tab-cabeceras_http').scrollIntoView({behavior:'smooth',block:'nearest'})">
+              <div class="cat-name">Cabeceras HTTP</div>
+              <div class="cat-score" style="color:#D85A30">50</div>
+              <div class="cat-bar"><div class="cat-fill" style="width:50%;background:#D85A30"></div></div>
+            </div><div class="cat-card" onclick="showSection('ssl___tls');document.getElementById('tab-ssl___tls').scrollIntoView({behavior:'smooth',block:'nearest'})">
+              <div class="cat-name">SSL / TLS</div>
+              <div class="cat-score" style="color:#3B6D11">85</div>
+              <div class="cat-bar"><div class="cat-fill" style="width:85%;background:#3B6D11"></div></div>
+            </div><div class="cat-card" onclick="showSection('dns___email');document.getElementById('tab-dns___email').scrollIntoView({behavior:'smooth',block:'nearest'})">
+              <div class="cat-name">DNS / Email</div>
+              <div class="cat-score" style="color:#1D9E75">95</div>
+              <div class="cat-bar"><div class="cat-fill" style="width:95%;background:#1D9E75"></div></div>
+            </div><div class="cat-card" onclick="showSection('tecnolog_as');document.getElementById('tab-tecnolog_as').scrollIntoView({behavior:'smooth',block:'nearest'})">
+              <div class="cat-name">Tecnologías</div>
+              <div class="cat-score" style="color:#1D9E75">100</div>
+              <div class="cat-bar"><div class="cat-fill" style="width:100%;background:#1D9E75"></div></div>
+            </div><div class="cat-card" onclick="showSection('contenido_html');document.getElementById('tab-contenido_html').scrollIntoView({behavior:'smooth',block:'nearest'})">
+              <div class="cat-name">Contenido HTML</div>
+              <div class="cat-score" style="color:#1D9E75">100</div>
+              <div class="cat-bar"><div class="cat-fill" style="width:100%;background:#1D9E75"></div></div>
+            </div><div class="cat-card" onclick="showSection('archivos_p_blicos');document.getElementById('tab-archivos_p_blicos').scrollIntoView({behavior:'smooth',block:'nearest'})">
+              <div class="cat-name">Archivos públicos</div>
+              <div class="cat-score" style="color:#1D9E75">95</div>
+              <div class="cat-bar"><div class="cat-fill" style="width:95%;background:#1D9E75"></div></div>
+            </div><div class="cat-card" onclick="showSection('secretos_js');document.getElementById('tab-secretos_js').scrollIntoView({behavior:'smooth',block:'nearest'})">
+              <div class="cat-name">Secretos JS</div>
+              <div class="cat-score" style="color:#5a5a72">—</div>
+              <div style="font-size:10px;color:#5a5a72;margin-top:4px">No evaluable</div>
+              <div class="cat-bar"><div class="cat-fill" style="width:0%;background:#5a5a72"></div></div>
+            </div><div class="cat-card" onclick="showSection('integridad_js__sri_');document.getElementById('tab-integridad_js__sri_').scrollIntoView({behavior:'smooth',block:'nearest'})">
+              <div class="cat-name">Integridad JS (SRI)</div>
+              <div class="cat-score" style="color:#1D9E75">100</div>
+              <div class="cat-bar"><div class="cat-fill" style="width:100%;background:#1D9E75"></div></div>
+            </div><div class="cat-card" onclick="showSection('reputaci_n');document.getElementById('tab-reputaci_n').scrollIntoView({behavior:'smooth',block:'nearest'})">
+              <div class="cat-name">Reputación</div>
+              <div class="cat-score" style="color:#1D9E75">97</div>
+              <div class="cat-bar"><div class="cat-fill" style="width:97%;background:#1D9E75"></div></div>
+            </div><div class="cat-card" onclick="showSection('login');document.getElementById('tab-login').scrollIntoView({behavior:'smooth',block:'nearest'})">
+              <div class="cat-name">Login</div>
+              <div class="cat-score" style="color:#5a5a72">—</div>
+              <div style="font-size:10px;color:#5a5a72;margin-top:4px">No evaluable</div>
+              <div class="cat-bar"><div class="cat-fill" style="width:0%;background:#5a5a72"></div></div>
+            </div></div></div>
+<div class="nav-outer"><div class="nav-outer-wrap">
+  <button class="nav-arrow" id="navLeft" onclick="scrollNav(-1)">&#8249;</button>
+  <div class="nav-inner" id="navInner"><button class="nav-tab active" onclick="showSection('action_plan')" id="tab-action_plan">
+        <span class="tab-label">🎯 Plan de acción</span>
+    </button><button class="nav-tab" onclick="showSection('risk_matrix')" id="tab-risk_matrix">
+        <span class="tab-label">⚠️ Matriz de riesgo</span>
+    </button><button class="nav-tab" onclick="showSection('compliance')" id="tab-compliance">
+        <span class="tab-label">📊 Cumplimiento</span>
+    </button><button class="nav-tab" onclick="showSection('owasp_map')" id="tab-owasp_map">
+        <span class="tab-label">📋 OWASP + CWE</span>
+    </button><button class="nav-tab" onclick="showSection('puertos_y_waf')" id="tab-puertos_y_waf">
+            <span class="tab-label">Puertos y WAF</span>
+            <span class="tab-score" style="color:#1D9E75">90</span>
+        </button><button class="nav-tab" onclick="showSection('cabeceras_http')" id="tab-cabeceras_http">
+            <span class="tab-label">Cabeceras HTTP</span>
+            <span class="tab-score" style="color:#D85A30">50</span>
+        </button><button class="nav-tab" onclick="showSection('ssl___tls')" id="tab-ssl___tls">
+            <span class="tab-label">SSL / TLS</span>
+            <span class="tab-score" style="color:#3B6D11">85</span>
+        </button><button class="nav-tab" onclick="showSection('dns___email')" id="tab-dns___email">
+            <span class="tab-label">DNS / Email</span>
+            <span class="tab-score" style="color:#1D9E75">95</span>
+        </button><button class="nav-tab" onclick="showSection('tecnolog_as')" id="tab-tecnolog_as">
+            <span class="tab-label">Tecnologías</span>
+            <span class="tab-score" style="color:#1D9E75">100</span>
+        </button><button class="nav-tab" onclick="showSection('contenido_html')" id="tab-contenido_html">
+            <span class="tab-label">Contenido HTML</span>
+            <span class="tab-score" style="color:#1D9E75">100</span>
+        </button><button class="nav-tab" onclick="showSection('archivos_p_blicos')" id="tab-archivos_p_blicos">
+            <span class="tab-label">Archivos públicos</span>
+            <span class="tab-score" style="color:#1D9E75">95</span>
+        </button><button class="nav-tab" onclick="showSection('secretos_js')" id="tab-secretos_js">
+            <span class="tab-label">Secretos JS</span>
+            <span class="tab-score" style="color:#5a5a72">—</span>
+        </button><button class="nav-tab" onclick="showSection('integridad_js__sri_')" id="tab-integridad_js__sri_">
+            <span class="tab-label">Integridad JS (SRI)</span>
+            <span class="tab-score" style="color:#1D9E75">100</span>
+        </button><button class="nav-tab" onclick="showSection('reputaci_n')" id="tab-reputaci_n">
+            <span class="tab-label">Reputación</span>
+            <span class="tab-score" style="color:#1D9E75">97</span>
+        </button><button class="nav-tab" onclick="showSection('login')" id="tab-login">
+            <span class="tab-label">Login</span>
+            <span class="tab-score" style="color:#5a5a72">—</span>
+        </button></div>
+  <button class="nav-arrow" id="navRight" onclick="scrollNav(1)">&#8250;</button>
+</div></div><div class="content"><section class="sec-panel active" id="panel-action_plan">
+        <div class="sec-header">
+            <div><h2 class="sec-title">Plan de Acción Priorizado</h2>
+            <p class="sec-sub">Los problemas más importantes ordenados por urgencia, con pasos concretos</p></div>
+        </div>
+        <div class="action-list"><div class="action-item">
+            <div class="action-num">1</div>
+            <div class="action-body">
+                <div class="action-urgency" style="color:#A32D2D">URGENTE — Hacer en las próximas 24 horas</div>
+                <div class="action-title">Certificado expira pronto (44 días)</div>
+                <div class="action-impact">El candado de seguridad venció o está por vencer. Los visitantes verán advertencia de &#x27;sitio no seguro&#x27;.</div>
+                <ol class="action-steps"><li>1. Contactar al proveedor de hosting.</li><li>2. Renovar el certificado SSL (Let's Encrypt es gratuito y automático).</li><li>3. Verificar que el sitio muestre el candado verde.</li></ol>
+            </div>
+        </div><div class="action-item">
+            <div class="action-num">2</div>
+            <div class="action-body">
+                <div class="action-urgency" style="color:#854F0B">IMPORTANTE — Hacer esta semana</div>
+                <div class="action-title">CDN (Cloudflare) no fuerza HTTPS</div>
+                <div class="action-impact">El CDN está activo pero los usuarios que accedan por HTTP no tendrán cifrado.</div>
+                <ol class="action-steps"><li>1. Ingresar al panel de Cloudflare (o el CDN correspondiente).</li><li>2. Ir a SSL/TLS → Edge Certificates.</li><li>3. Activar 'Always Use HTTPS'.</li><li>4. Verificar que http://tudominio.com redirija automáticamente a https://.</li><li>5. Re-auditar el sitio para confirmar la corrección.</li></ol>
+            </div>
+        </div><div class="action-item">
+            <div class="action-num">3</div>
+            <div class="action-body">
+                <div class="action-urgency" style="color:#854F0B">IMPORTANTE — Hacer esta semana</div>
+                <div class="action-title">Content-Security-Policy ausente</div>
+                <div class="action-impact">Cabeceras de seguridad críticas ausentes que protegen contra XSS, MITM y Clickjacking.</div>
+                <ol class="action-steps"><li>1. Acceder al panel de configuración del servidor web (nginx, Apache, o CDN).</li><li>2. Agregar las cabeceras de seguridad faltantes.</li><li>3. Verificar con: securityheaders.com</li><li>4. Consultar al proveedor de hosting si no tiene acceso directo.</li><li>5. Re-auditar el sitio tras los cambios.</li></ol>
+            </div>
+        </div><div class="action-item">
+            <div class="action-num">4</div>
+            <div class="action-body">
+                <div class="action-urgency" style="color:#185FA5">RECOMENDADO — Próximo mes</div>
+                <div class="action-title">Content-Security-Policy ausente</div>
+                <div class="action-impact">Sin esta protección el sitio es más vulnerable a ataques de inyección de código (XSS).</div>
+                <ol class="action-steps"><li>1. Contactar al desarrollador web.</li><li>2. Agregar la cabecera Content-Security-Policy.</li><li>3. Usar el generador gratuito en: cspisawesome.com</li></ol>
+            </div>
+        </div><div class="action-item">
+            <div class="action-num">5</div>
+            <div class="action-body">
+                <div class="action-urgency" style="color:#185FA5">RECOMENDADO — Próximo mes</div>
+                <div class="action-title">SPF configurado sin mecanismos de envío (bloquea TODO el correo)</div>
+                <div class="action-impact">Las direcciones de email visibles en la web son capturadas por bots de spam.</div>
+                <ol class="action-steps"><li>1. Reemplazar los emails visibles por un formulario de contacto.</li><li>2. Si el email debe mostrarse, usar JavaScript para ofuscarlo.</li><li>3. Considerar usar una dirección genérica (contacto@) en lugar de la personal.</li></ol>
+            </div>
+        </div></div>
+    </section><section class="sec-panel" id="panel-risk_matrix">
+        <div class="sec-header">
+            <div><h2 class="sec-title">Matriz de Riesgo</h2>
+            <p class="sec-sub">Posición de cada hallazgo según Impacto × Probabilidad · Hover para ver el nombre</p></div>
+        </div>
+        <div class="risk-legend">
+            <span class="risk-cell risk-low">Bajo</span>
+            <span class="risk-cell risk-medium">Medio</span>
+            <span class="risk-cell risk-high">Alto</span>
+            <span class="risk-cell risk-critical">Crítico</span>
+        </div>
+        <div style="position:relative;margin:0 auto;max-width:560px">
+            <canvas id="riskMatrix" width="560" height="500"></canvas>
+            <div id="riskTooltip" style="display:none;position:absolute;background:rgba(0,0,0,0.85);color:#fff;padding:6px 10px;border-radius:6px;font-size:11px;pointer-events:none;max-width:200px;z-index:100;font-family:'DM Mono',monospace"></div>
+        </div>
+        <p style="font-size:11px;color:var(--text3);text-align:center;margin-top:12px">
+            ● Crítico &nbsp; ▲ Advertencia &nbsp; — Pasar el mouse sobre un punto muestra el hallazgo
+        </p>
+    </section><section class="sec-panel" id="panel-compliance">
+        <div class="sec-header">
+            <div><h2 class="sec-title">Comparativa de Estándares de Seguridad</h2>
+            <p class="sec-sub">Porcentaje de cumplimiento con las recomendaciones de seguridad para sitios web</p></div>
+            <div class="sec-score-badge" style="background:#1D9E7522;color:#1D9E75">75% (12/16)</div>
+        </div>
+        <div style="margin-bottom:20px">
+            <div style="background:var(--surface2);border-radius:8px;height:12px;overflow:hidden;margin-bottom:8px">
+                <div style="background:#1D9E75;width:75%;height:100%;border-radius:8px;transition:width 1s ease"></div>
+            </div>
+            <p style="font-size:12px;color:var(--text3)">
+                El sitio cumple con <strong style="color:#1D9E75">75%</strong> de las recomendaciones de seguridad evaluadas.
+            </p>
+        </div>
+        <div class="comp-grid"><div class="comp-item" style="color:#3B6D11">✅ HTTPS habilitado</div><div class="comp-item" style="color:#A32D2D">❌ HSTS configurado</div><div class="comp-item" style="color:#A32D2D">❌ Content-Security-Policy</div><div class="comp-item" style="color:#A32D2D">❌ X-Frame-Options</div><div class="comp-item" style="color:#A32D2D">❌ X-Content-Type-Options</div><div class="comp-item" style="color:#3B6D11">✅ SPF configurado</div><div class="comp-item" style="color:#3B6D11">✅ DMARC configurado</div><div class="comp-item" style="color:#3B6D11">✅ Sin puertos peligrosos</div><div class="comp-item" style="color:#3B6D11">✅ Sin archivos sensibles expuestos</div><div class="comp-item" style="color:#5a5a72">➖ Sin secretos en JS (N/A — sin scripts)</div><div class="comp-item" style="color:#3B6D11">✅ TLS moderno (1.2+)</div><div class="comp-item" style="color:#3B6D11">✅ Cookies seguras</div><div class="comp-item" style="color:#3B6D11">✅ Sin versiones expuestas</div><div class="comp-item" style="color:#3B6D11">✅ Sin mixed content</div><div class="comp-item" style="color:#3B6D11">✅ WAF / Protección activa</div><div class="comp-item" style="color:#3B6D11">✅ Scripts externos con SRI</div><div class="comp-item" style="color:#3B6D11">✅ Sin open redirect detectado</div></div>
+    </section><section class="sec-panel" id="panel-owasp_map">
+        <div class="sec-header">
+            <div><h2 class="sec-title">Mapeo OWASP Top 10 + Referencias CWE</h2>
+            <p class="sec-sub">Relación entre los hallazgos, OWASP Top 10 y CWE (Common Weakness Enumeration)</p></div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead><tr style="border-bottom:1px solid var(--border)">
+                <th style="text-align:left;padding:8px;color:var(--text3);font-size:11px">SEV</th>
+                <th style="text-align:left;padding:8px;color:var(--text3);font-size:11px">HALLAZGO</th>
+                <th style="text-align:left;padding:8px;color:var(--text3);font-size:11px">OWASP</th>
+                <th style="text-align:left;padding:8px;color:var(--text3);font-size:11px">DESCRIPCIÓN</th>
+                <th style="text-align:left;padding:8px;color:var(--text3);font-size:11px">CWE</th>
+            </tr></thead>
+            <tbody><tr>
+            <td><span class="badge" style="background:#FAEEDA;color:#854F0B">ADVERTENCIA</span></td>
+            <td style="font-size:12px">Content-Security-Policy ausente</td>
+            <td style="font-size:12px;color:#5b8fff;font-family:monospace">A03:2021 – Injection / XSS</td>
+            <td style="font-size:11px;color:#9090a8">Sin CSP los ataques de inyección de scripts (XSS) son significativamente más fáciles.</td>
+            <td><span class="cwe-badge">CWE-693</span></td>
+        </tr><tr>
+            <td><span class="badge" style="background:#FCEBEB;color:#A32D2D">CRÍTICO</span></td>
+            <td style="font-size:12px">HSTS ausente</td>
+            <td style="font-size:12px;color:#5b8fff;font-family:monospace">A02:2021 – Cryptographic Failures</td>
+            <td style="font-size:11px;color:#9090a8">HSTS protege contra ataques de degradación de cifrado.</td>
+            <td><span class="cwe-badge">CWE-319</span></td>
+        </tr><tr>
+            <td><span class="badge" style="background:#FAEEDA;color:#854F0B">ADVERTENCIA</span></td>
+            <td style="font-size:12px">X-Frame-Options ausente</td>
+            <td style="font-size:12px;color:#5b8fff;font-family:monospace">A04:2021 – Insecure Design</td>
+            <td style="font-size:11px;color:#9090a8">Sin X-Frame-Options el sitio es vulnerable a Clickjacking.</td>
+            <td><span class="cwe-badge">CWE-1021</span></td>
+        </tr><tr>
+            <td><span class="badge" style="background:#FAEEDA;color:#854F0B">ADVERTENCIA</span></td>
+            <td style="font-size:12px">X-Content-Type-Options ausente</td>
+            <td style="font-size:12px;color:#5b8fff;font-family:monospace">A05:2021 – Security Misconfiguration</td>
+            <td style="font-size:11px;color:#9090a8">Sin este header el navegador puede ejecutar archivos con MIME type incorrecto (MIME sniffing).</td>
+            <td><span class="cwe-badge">CWE-16</span></td>
+        </tr><tr>
+            <td><span class="badge" style="background:#FAEEDA;color:#854F0B">ADVERTENCIA</span></td>
+            <td style="font-size:12px">Referrer-Policy ausente</td>
+            <td style="font-size:12px;color:#5b8fff;font-family:monospace">A05:2021 – Security Misconfiguration</td>
+            <td style="font-size:11px;color:#9090a8">Sin Referrer-Policy las URLs internas se filtran a sitios de terceros en el header Referer.</td>
+            <td><span class="cwe-badge">CWE-116</span></td>
+        </tr><tr>
+            <td><span class="badge" style="background:#FAEEDA;color:#854F0B">ADVERTENCIA</span></td>
+            <td style="font-size:12px">Permissions-Policy ausente</td>
+            <td style="font-size:12px;color:#5b8fff;font-family:monospace">A05:2021 – Security Misconfiguration</td>
+            <td style="font-size:11px;color:#9090a8">Sin Permissions-Policy el sitio no controla qué APIs del navegador pueden usar los iframes.</td>
+            <td><span class="cwe-badge">CWE-284</span></td>
+        </tr><tr>
+            <td><span class="badge" style="background:#FAEEDA;color:#854F0B">ADVERTENCIA</span></td>
+            <td style="font-size:12px">Certificado expira pronto (44 días)</td>
+            <td style="font-size:12px;color:#5b8fff;font-family:monospace">A02:2021 – Cryptographic Failures</td>
+            <td style="font-size:11px;color:#9090a8">Los problemas con el certificado SSL comprometen la confidencialidad.</td>
+            <td><span class="cwe-badge">CWE-298</span></td>
+        </tr></tbody>
+        </table>
+    </section><section class="sec-panel" id="panel-puertos_y_waf">
+            <div class="sec-header">
+                <div>
+                    <h2 class="sec-title">Puertos y WAF</h2>
+                    <p class="sec-sub">Análisis de seguridad pasivo · Web Security Auditor v5.0</p>
+                </div>
+                <div class="sec-score-badge" style="background:#E1F5EE;color:#1D9E75">A+ — 90/100</div>
+            </div>
+            <table class="info-tbl"><tbody><tr><td class="t-label">Puertos abiertos detectados</td><td class="t-val">80/HTTP, 443/HTTPS, 8080/HTTP-Alt, 8443/HTTPS-Alt</td></tr><tr><td class="t-label">Redirección HTTP→HTTPS</td><td class="t-val">⚠️ CDN activo pero sin forzar HTTPS</td></tr><tr><td class="t-label">Timeout anti-tarpitting</td><td class="t-val">1.5s por puerto</td></tr></tbody></table>
+            <div class="findings-list"><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#EAF3DE;color:#3B6D11">OK</span>
+                    <span class="finding-title">Sin puertos peligrosos expuestos</span>
+                    
+                </div>
+                <div class="finding-desc">No se detectaron bases de datos ni servicios de administración expuestos.</div>
+                
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#FAEEDA;color:#854F0B">ADVERTENCIA</span>
+                    <span class="finding-title">CDN (Cloudflare) no fuerza HTTPS</span>
+                    <span class="cwe-badge">CWE-319</span>
+                </div>
+                <div class="finding-desc">El CDN (Cloudflare) está activo pero no redirige HTTP a HTTPS automáticamente. Los usuarios que accedan por HTTP no serán protegidos por el cifrado.</div>
+                <div class="rec">💡 En el panel de Cloudflare, activar &#x27;Always Use HTTPS&#x27; o equivalente.</div>
+            </div></div>
+        </section><section class="sec-panel" id="panel-cabeceras_http">
+            <div class="sec-header">
+                <div>
+                    <h2 class="sec-title">Cabeceras HTTP</h2>
+                    <p class="sec-sub">Análisis de seguridad pasivo · Web Security Auditor v5.0</p>
+                </div>
+                <div class="sec-score-badge" style="background:#FAECE7;color:#D85A30">D — 50/100</div>
+            </div>
+            <table class="info-tbl"><tbody><tr><td class="t-label">Content-Security-Policy</td><td class="t-val">❌ AUSENTE</td></tr><tr><td class="t-label">HSTS</td><td class="t-val">❌ AUSENTE</td></tr><tr><td class="t-label">X-Frame-Options</td><td class="t-val">❌ AUSENTE</td></tr><tr><td class="t-label">X-Content-Type-Options</td><td class="t-val">❌ AUSENTE</td></tr><tr><td class="t-label">Referrer-Policy</td><td class="t-val">❌ AUSENTE</td></tr><tr><td class="t-label">Permissions-Policy</td><td class="t-val">❌ AUSENTE</td></tr><tr><td class="t-label">Cross-Origin-Opener-Policy</td><td class="t-val">❌ AUSENTE</td></tr><tr><td class="t-label">Cross-Origin-Embedder-Policy</td><td class="t-val">❌ AUSENTE</td></tr><tr><td class="t-label">X-XSS-Protection (obsoleto)</td><td class="t-val">❌ AUSENTE</td></tr><tr><td class="t-label">Status HTTP</td><td class="t-val">200</td></tr><tr><td class="t-label">Redirect chain</td><td class="t-val">https://example.com/</td></tr><tr><td class="t-label">WAF detectado</td><td class="t-val">✓ Cloudflare</td></tr><tr><td class="t-label">Cache-Control</td><td class="t-val">No configurado</td></tr></tbody></table>
+            <div class="findings-list"><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#FAEEDA;color:#854F0B">ADVERTENCIA</span>
+                    <span class="finding-title">Content-Security-Policy ausente</span>
+                    <span class="cwe-badge">CWE-693</span>
+                </div>
+                <div class="finding-desc">La cabecera Content-Security-Policy no está configurada. Nota: el WAF activo (Cloudflare) mitiga parcialmente este riesgo, pero configurar la cabecera sigue siendo una buena práctica.</div>
+                <div class="rec">💡 Agregar la cabecera &#x27;content-security-policy&#x27; en la configuración del servidor.</div>
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#FCEBEB;color:#A32D2D">CRÍTICO</span>
+                    <span class="finding-title">HSTS ausente</span>
+                    <span class="cwe-badge">CWE-319</span>
+                </div>
+                <div class="finding-desc">La cabecera HSTS no está configurada.</div>
+                <div class="rec">💡 Agregar la cabecera &#x27;strict-transport-security&#x27; en la configuración del servidor.</div>
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#FAEEDA;color:#854F0B">ADVERTENCIA</span>
+                    <span class="finding-title">X-Frame-Options ausente</span>
+                    <span class="cwe-badge">CWE-1021</span>
+                </div>
+                <div class="finding-desc">La cabecera X-Frame-Options no está configurada. Nota: el WAF activo (Cloudflare) mitiga parcialmente este riesgo, pero configurar la cabecera sigue siendo una buena práctica.</div>
+                <div class="rec">💡 Agregar la cabecera &#x27;x-frame-options&#x27; en la configuración del servidor.</div>
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#FAEEDA;color:#854F0B">ADVERTENCIA</span>
+                    <span class="finding-title">X-Content-Type-Options ausente</span>
+                    <span class="cwe-badge">CWE-16</span>
+                </div>
+                <div class="finding-desc">La cabecera X-Content-Type-Options no está configurada.</div>
+                <div class="rec">💡 Agregar la cabecera &#x27;x-content-type-options&#x27; en la configuración del servidor.</div>
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#FAEEDA;color:#854F0B">ADVERTENCIA</span>
+                    <span class="finding-title">Referrer-Policy ausente</span>
+                    <span class="cwe-badge">CWE-116</span>
+                </div>
+                <div class="finding-desc">La cabecera Referrer-Policy no está configurada.</div>
+                <div class="rec">💡 Agregar la cabecera &#x27;referrer-policy&#x27; en la configuración del servidor.</div>
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#FAEEDA;color:#854F0B">ADVERTENCIA</span>
+                    <span class="finding-title">Permissions-Policy ausente</span>
+                    <span class="cwe-badge">CWE-284</span>
+                </div>
+                <div class="finding-desc">La cabecera Permissions-Policy no está configurada.</div>
+                <div class="rec">💡 Agregar la cabecera &#x27;permissions-policy&#x27; en la configuración del servidor.</div>
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#E6F1FB;color:#185FA5">INFO</span>
+                    <span class="finding-title">Cross-Origin-Opener-Policy ausente</span>
+                    
+                </div>
+                <div class="finding-desc">La cabecera Cross-Origin-Opener-Policy no está configurada.</div>
+                <div class="rec">💡 Agregar la cabecera &#x27;cross-origin-opener-policy&#x27; en la configuración del servidor.</div>
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#E6F1FB;color:#185FA5">INFO</span>
+                    <span class="finding-title">Cross-Origin-Embedder-Policy ausente</span>
+                    
+                </div>
+                <div class="finding-desc">La cabecera Cross-Origin-Embedder-Policy no está configurada.</div>
+                <div class="rec">💡 Agregar la cabecera &#x27;cross-origin-embedder-policy&#x27; en la configuración del servidor.</div>
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#E6F1FB;color:#185FA5">INFO</span>
+                    <span class="finding-title">X-XSS-Protection (obsoleto) ausente</span>
+                    
+                </div>
+                <div class="finding-desc">La cabecera X-XSS-Protection (obsoleto) no está configurada.</div>
+                <div class="rec">💡 No es necesario configurarla. Está deprecada en navegadores modernos y puede introducir vulnerabilidades XSS en lugar de prevenirlas.</div>
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#E6F1FB;color:#185FA5">INFO</span>
+                    <span class="finding-title">Cabecera &#x27;server&#x27; expuesta (valor controlado por CDN)</span>
+                    
+                </div>
+                <div class="finding-desc">Valor: &#x27;cloudflare&#x27; — este valor lo establece el CDN/proxy automáticamente y no puede ser modificado por el administrador.</div>
+                <div class="rec">💡 No requiere acción. Es un comportamiento normal del CDN.</div>
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#EAF3DE;color:#3B6D11">OK</span>
+                    <span class="finding-title">WAF detectado: Cloudflare</span>
+                    
+                </div>
+                <div class="finding-desc">Se detectó un firewall de aplicaciones web (Cloudflare) protegiendo el sitio. Nota: Este sitio está protegido por Cloudflare WAF. Algunas pruebas se ajustaron para evitar bloqueos — los resultados reflejan lo visible públicamente.</div>
+                
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#E6F1FB;color:#185FA5">INFO</span>
+                    <span class="finding-title">Cache-Control no configurado</span>
+                    
+                </div>
+                <div class="finding-desc">Sin Cache-Control el navegador y proxies pueden cachear respuestas con datos sensibles.</div>
+                <div class="rec">💡 Configurar Cache-Control: no-store en páginas autenticadas o con datos personales.</div>
+            </div></div>
+        </section><section class="sec-panel" id="panel-ssl___tls">
+            <div class="sec-header">
+                <div>
+                    <h2 class="sec-title">SSL / TLS</h2>
+                    <p class="sec-sub">Análisis de seguridad pasivo · Web Security Auditor v5.0</p>
+                </div>
+                <div class="sec-score-badge" style="background:#EAF3DE;color:#3B6D11">A — 85/100</div>
+            </div>
+            <table class="info-tbl"><tbody><tr><td class="t-label">Protocolo TLS (negociado)</td><td class="t-val">TLSv1.3</td></tr><tr><td class="t-label">TLS 1.0 aceptado</td><td class="t-val">✓ Rechazado</td></tr><tr><td class="t-label">TLS 1.1 aceptado</td><td class="t-val">✓ Rechazado</td></tr><tr><td class="t-label">Cipher suite activa</td><td class="t-val">TLS_AES_256_GCM_SHA384 (256 bits)</td></tr><tr><td class="t-label">Emisor</td><td class="t-val">CN=Cloudflare TLS Issuing ECC CA 1,O=CLOUDFLARE\, INC.,C=US</td></tr><tr><td class="t-label">Expira</td><td class="t-val">2026-07-01 (44 días)</td></tr><tr><td class="t-label">Válido desde</td><td class="t-val">2026-04-02</td></tr><tr><td class="t-label">SAN (dominios cubiertos)</td><td class="t-val">example.com, *.example.com</td></tr><tr><td class="t-label">Algoritmo de firma</td><td class="t-val">SHA256</td></tr><tr><td class="t-label">HTTP/2</td><td class="t-val">✓ Soportado por Cloudflare</td></tr></tbody></table>
+            <div class="findings-list"><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#EAF3DE;color:#3B6D11">OK</span>
+                    <span class="finding-title">Protocolo seguro negociado: TLSv1.3</span>
+                    
+                </div>
+                <div class="finding-desc">TLS 1.2+ está en uso.</div>
+                
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#EAF3DE;color:#3B6D11">OK</span>
+                    <span class="finding-title">Cifrado fuerte: 256 bits</span>
+                    
+                </div>
+                <div class="finding-desc">Suite: TLS_AES_256_GCM_SHA384</div>
+                
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#FAEEDA;color:#854F0B">ADVERTENCIA</span>
+                    <span class="finding-title">Certificado expira pronto (44 días)</span>
+                    <span class="cwe-badge">CWE-298</span>
+                </div>
+                <div class="finding-desc">Menos de 60 días de validez. Se recomienda renovar con anticipación.</div>
+                <div class="rec">💡 Renovar el certificado antes de que expire.</div>
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#EAF3DE;color:#3B6D11">OK</span>
+                    <span class="finding-title">Certificado SSL presente</span>
+                    
+                </div>
+                <div class="finding-desc">El sitio tiene SSL configurado.</div>
+                
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#EAF3DE;color:#3B6D11">OK</span>
+                    <span class="finding-title">HTTP/2 soportado vía CDN (Cloudflare)</span>
+                    
+                </div>
+                <div class="finding-desc">Cloudflare provee HTTP/2 automáticamente. No se detectó el header Alt-Svc pero el protocolo está activo.</div>
+                
+            </div></div>
+        </section><section class="sec-panel" id="panel-dns___email">
+            <div class="sec-header">
+                <div>
+                    <h2 class="sec-title">DNS / Email</h2>
+                    <p class="sec-sub">Análisis de seguridad pasivo · Web Security Auditor v5.0</p>
+                </div>
+                <div class="sec-score-badge" style="background:#E1F5EE;color:#1D9E75">A+ — 95/100</div>
+            </div>
+            <table class="info-tbl"><tbody><tr><td class="t-label">SPF</td><td class="t-val">v=spf1 -all</td></tr><tr><td class="t-label">DMARC</td><td class="t-val">v=DMARC1;p=reject;sp=reject;adkim=s;aspf=s</td></tr><tr><td class="t-label">DKIM</td><td class="t-val">✓ Selector &#x27;default&#x27; encontrado</td></tr><tr><td class="t-label">DNSSEC</td><td class="t-val">✓ Habilitado</td></tr><tr><td class="t-label">CAA</td><td class="t-val">No configurado</td></tr><tr><td class="t-label">MX</td><td class="t-val">Sin servidores de email</td></tr><tr><td class="t-label">IPs del servidor</td><td class="t-val">104.20.23.154, 172.66.147.243</td></tr><tr><td class="t-label">Subdominios (RapidDNS) — 2 total</td><td class="t-val">20mail2.example.com, www.example.com</td></tr></tbody></table>
+            <div class="findings-list"><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#EAF3DE;color:#3B6D11">OK</span>
+                    <span class="finding-title">SPF configurado</span>
+                    
+                </div>
+                <div class="finding-desc">v=spf1 -all</div>
+                
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#FAEEDA;color:#854F0B">ADVERTENCIA</span>
+                    <span class="finding-title">SPF configurado sin mecanismos de envío (bloquea TODO el correo)</span>
+                    <span class="cwe-badge">CWE-345</span>
+                </div>
+                <div class="finding-desc">El registro SPF es &#x27;v=spf1 -all&#x27; y no autoriza ningún servidor (sin include:, ip4:, ip6:, a:, mx:). Esto bloquea cualquier email saliente del dominio, incluido el correo legítimo.</div>
+                <div class="rec">💡 Agregar los servidores de correo autorizados. Ej: &#x27;v=spf1 include:_spf.google.com ~all&#x27; para Google Workspace.</div>
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#EAF3DE;color:#3B6D11">OK</span>
+                    <span class="finding-title">DMARC configurado</span>
+                    
+                </div>
+                <div class="finding-desc">v=DMARC1;p=reject;sp=reject;adkim=s;aspf=s</div>
+                
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#EAF3DE;color:#3B6D11">OK</span>
+                    <span class="finding-title">DKIM configurado (selector: default)</span>
+                    
+                </div>
+                <div class="finding-desc">Las firmas digitales de email están habilitadas.</div>
+                
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#EAF3DE;color:#3B6D11">OK</span>
+                    <span class="finding-title">DNSSEC habilitado</span>
+                    
+                </div>
+                <div class="finding-desc">Las respuestas DNS están firmadas digitalmente.</div>
+                
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#E6F1FB;color:#185FA5">INFO</span>
+                    <span class="finding-title">Sin registro CAA</span>
+                    
+                </div>
+                <div class="finding-desc">Cualquier CA puede emitir certificados para este dominio.</div>
+                <div class="rec">💡 Agregar registro CAA para limitar qué CAs pueden emitir certificados.</div>
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#E6F1FB;color:#185FA5">INFO</span>
+                    <span class="finding-title">2 subdominios detectados vía RapidDNS</span>
+                    
+                </div>
+                <div class="finding-desc">Encontrados: 20mail2.example.com, www.example.com</div>
+                <div class="rec">💡 Revisar que todos los subdominios expuestos sean intencionales y estén correctamente asegurados.</div>
+            </div></div>
+        </section><section class="sec-panel" id="panel-tecnolog_as">
+            <div class="sec-header">
+                <div>
+                    <h2 class="sec-title">Tecnologías</h2>
+                    <p class="sec-sub">Análisis de seguridad pasivo · Web Security Auditor v5.0</p>
+                </div>
+                <div class="sec-score-badge" style="background:#E1F5EE;color:#1D9E75">A+ — 100/100</div>
+            </div>
+            <table class="info-tbl"><tbody><tr><td class="t-label">Tecnologías detectadas</td><td class="t-val">Cloudflare, Cloudflare CDN</td></tr><tr><td class="t-label">Versiones expuestas</td><td class="t-val">Ninguna detectada</td></tr><tr><td class="t-label">Server header</td><td class="t-val">cloudflare</td></tr><tr><td class="t-label">X-Powered-By</td><td class="t-val">Oculto (buena práctica)</td></tr></tbody></table><div class="tech-row"><span class="tech-pill">Cloudflare</span><span class="tech-pill">Cloudflare CDN</span></div>
+            <div class="findings-list"><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#E6F1FB;color:#185FA5">INFO</span>
+                    <span class="finding-title">2 tecnologías identificadas</span>
+                    
+                </div>
+                <div class="finding-desc">Stack detectado: Cloudflare, Cloudflare CDN</div>
+                <div class="rec">💡 Verificar que todas las tecnologías estén en sus últimas versiones.</div>
+            </div></div>
+        </section><section class="sec-panel" id="panel-contenido_html">
+            <div class="sec-header">
+                <div>
+                    <h2 class="sec-title">Contenido HTML</h2>
+                    <p class="sec-sub">Análisis de seguridad pasivo · Web Security Auditor v5.0</p>
+                </div>
+                <div class="sec-score-badge" style="background:#E1F5EE;color:#1D9E75">A+ — 100/100</div>
+            </div>
+            <table class="info-tbl"><tbody><tr><td class="t-label">Mixed content</td><td class="t-val">✓ Ninguno</td></tr><tr><td class="t-label">Formularios detectados</td><td class="t-val">0 total, 0 con action HTTP inseguro</td></tr><tr><td class="t-label">Emails expuestos en HTML</td><td class="t-val">✓ Ninguno detectado</td></tr><tr><td class="t-label">Campos password</td><td class="t-val">0 detectado(s)</td></tr><tr><td class="t-label">Comentarios sospechosos</td><td class="t-val">✓ Ninguno</td></tr><tr><td class="t-label">iframes</td><td class="t-val">0</td></tr><tr><td class="t-label">Open Redirect (pasivo)</td><td class="t-val">✓ Sin parámetros de redirección externos detectados</td></tr></tbody></table>
+            <div class="findings-list"><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#EAF3DE;color:#3B6D11">OK</span>
+                    <span class="finding-title">Sin mixed content detectado</span>
+                    
+                </div>
+                <div class="finding-desc">Todos los recursos parecen cargarse por HTTPS.</div>
+                
+            </div></div>
+        </section><section class="sec-panel" id="panel-archivos_p_blicos">
+            <div class="sec-header">
+                <div>
+                    <h2 class="sec-title">Archivos públicos</h2>
+                    <p class="sec-sub">Análisis de seguridad pasivo · Web Security Auditor v5.0</p>
+                </div>
+                <div class="sec-score-badge" style="background:#E1F5EE;color:#1D9E75">A+ — 95/100</div>
+            </div>
+            <table class="info-tbl"><tbody><tr><td class="t-label">robots.txt</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">sitemap.xml</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">security.txt (RFC 9116)</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">security.txt (raíz)</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">OpenID Configuration (info disclosure)</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">OAuth Server Metadata (info disclosure)</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">Apple App Site Association</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">Android Asset Links</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">MTA-STS Policy (email)</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">crossdomain.xml</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">clientaccesspolicy.xml</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">.git/HEAD ⚠️ PELIGROSO</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">.git/config ⚠️ PELIGROSO</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">.svn/entries ⚠️ PELIGROSO</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">.hg/hgrc ⚠️ PELIGROSO</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">.env ⚠️ MUY PELIGROSO</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">.env.local ⚠️ PELIGROSO</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">.env.production ⚠️ PELIGROSO</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">.env.backup ⚠️ PELIGROSO</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">config.php</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">wp-config.php.bak ⚠️ PELIGROSO</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">.vscode/settings.json ⚠️</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">.idea/workspace.xml ⚠️</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">docker-compose.yml ⚠️ PELIGROSO</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">docker-compose.yaml ⚠️ PELIGROSO</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">Dockerfile ⚠️</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">package.json ⚠️</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">composer.json ⚠️</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">requirements.txt ⚠️</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">backup.zip ⚠️ PELIGROSO</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">backup.sql ⚠️ PELIGROSO</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">dump.sql ⚠️ PELIGROSO</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">database.sql ⚠️ PELIGROSO</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">db.sql ⚠️ PELIGROSO</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">.DS_Store ⚠️</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">phpinfo.php ⚠️ PELIGROSO</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">.htaccess</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">wp-login.php</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">/admin</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">Apache server-status</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">error.log ⚠️</td><td class="t-val">No disponible (404)</td></tr><tr><td class="t-label">debug.log ⚠️</td><td class="t-val">No disponible (404)</td></tr></tbody></table>
+            <div class="findings-list"><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#E6F1FB;color:#185FA5">INFO</span>
+                    <span class="finding-title">security.txt ausente</span>
+                    
+                </div>
+                <div class="finding-desc">No hay política de divulgación responsable de vulnerabilidades (RFC 9116).</div>
+                <div class="rec">💡 Crear /.well-known/security.txt con contacto y política.</div>
+            </div></div>
+        </section><section class="sec-panel" id="panel-secretos_js">
+            <div class="sec-header">
+                <div>
+                    <h2 class="sec-title">Secretos JS</h2>
+                    <p class="sec-sub">Análisis de seguridad pasivo · Web Security Auditor v5.0</p>
+                </div>
+                <div class="sec-score-badge" style="background:#FAEEDA;color:#854F0B">C — None/100</div>
+            </div>
+            <table class="info-tbl"><tbody><tr><td class="t-label">Scripts JS propios detectados</td><td class="t-val">0</td></tr><tr><td class="t-label">Scripts JS analizados</td><td class="t-val">0</td></tr><tr><td class="t-label">Secretos detectados</td><td class="t-val">✓ Ninguno</td></tr></tbody></table>
+            <div class="findings-list"></div>
+        </section><section class="sec-panel" id="panel-integridad_js__sri_">
+            <div class="sec-header">
+                <div>
+                    <h2 class="sec-title">Integridad JS (SRI)</h2>
+                    <p class="sec-sub">Análisis de seguridad pasivo · Web Security Auditor v5.0</p>
+                </div>
+                <div class="sec-score-badge" style="background:#E1F5EE;color:#1D9E75">A+ — 100/100</div>
+            </div>
+            <table class="info-tbl"><tbody><tr><td class="t-label">Scripts externos detectados</td><td class="t-val">0</td></tr><tr><td class="t-label">Scripts con SRI</td><td class="t-val">0</td></tr><tr><td class="t-label">Scripts sin SRI</td><td class="t-val">✓ 0</td></tr></tbody></table>
+            <div class="findings-list"><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#EAF3DE;color:#3B6D11">OK</span>
+                    <span class="finding-title">Sin scripts externos detectados</span>
+                    
+                </div>
+                <div class="finding-desc">No se encontraron scripts de CDN externos.</div>
+                
+            </div></div>
+        </section><section class="sec-panel" id="panel-reputaci_n">
+            <div class="sec-header">
+                <div>
+                    <h2 class="sec-title">Reputación</h2>
+                    <p class="sec-sub">Análisis de seguridad pasivo · Web Security Auditor v5.0</p>
+                </div>
+                <div class="sec-score-badge" style="background:#E1F5EE;color:#1D9E75">A+ — 97/100</div>
+            </div>
+            <table class="info-tbl"><tbody><tr><td class="t-label">URLScan.io</td><td class="t-val">10000 escaneos previos</td></tr><tr><td class="t-label">IP del sitio</td><td class="t-val">104.20.23.154</td></tr><tr><td class="t-label">Blacklists DNSBL</td><td class="t-val">✓ No listado</td></tr><tr><td class="t-label">Registro dominio</td><td class="t-val">1995-08-14T04:00:00Z</td></tr><tr><td class="t-label">Expiración dominio</td><td class="t-val">2026-08-13T04:00:00Z</td></tr><tr><td class="t-label">Días hasta expiración dominio</td><td class="t-val">87 días</td></tr><tr><td class="t-label">Antigüedad del dominio</td><td class="t-val">11234 días (30 años)</td></tr><tr><td class="t-label">HSTS Preload status</td><td class="t-val">unknown</td></tr></tbody></table>
+            <div class="findings-list"><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#EAF3DE;color:#3B6D11">OK</span>
+                    <span class="finding-title">URLScan.io: sin amenazas (10000 escaneos)</span>
+                    
+                </div>
+                <div class="finding-desc">Último escaneo: 2026-05-17T22:12:26.989Z</div>
+                
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#EAF3DE;color:#3B6D11">OK</span>
+                    <span class="finding-title">Sin entradas en listas negras DNSBL verificadas</span>
+                    
+                </div>
+                <div class="finding-desc">La IP 104.20.23.154 no aparece en las listas negras principales verificadas.</div>
+                
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#E6F1FB;color:#185FA5">INFO</span>
+                    <span class="finding-title">Dominio expira en 87 días</span>
+                    
+                </div>
+                <div class="finding-desc">El dominio vence en menos de 3 meses. Recordar renovarlo.</div>
+                <div class="rec">💡 Activar la renovación automática en el registrar.</div>
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#EAF3DE;color:#3B6D11">OK</span>
+                    <span class="finding-title">Dominio establecido (30 años)</span>
+                    
+                </div>
+                <div class="finding-desc"></div>
+                
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#E6F1FB;color:#185FA5">INFO</span>
+                    <span class="finding-title">Dominio NO está en la lista HSTS Preload (estado: unknown)</span>
+                    
+                </div>
+                <div class="finding-desc">El HSTS Preload list hace que los navegadores fuercen HTTPS incluso antes de la primera visita, protegiéndola del primer request sin cifrar.</div>
+                <div class="rec">💡 Si el sitio tiene HSTS configurado correctamente, solicitar inclusión en: hstspreload.org</div>
+            </div><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#E6F1FB;color:#185FA5">INFO</span>
+                    <span class="finding-title">Verificación adicional recomendada</span>
+                    
+                </div>
+                <div class="finding-desc">Para análisis completo de reputación: Google Safe Browsing, VirusTotal y Shodan.</div>
+                <div class="rec">💡 Crear cuentas gratuitas en: virustotal.com, shodan.io</div>
+            </div></div>
+        </section><section class="sec-panel" id="panel-login">
+            <div class="sec-header">
+                <div>
+                    <h2 class="sec-title">Login</h2>
+                    <p class="sec-sub">Análisis de seguridad pasivo · Web Security Auditor v5.0</p>
+                </div>
+                <div class="sec-score-badge" style="background:#FAEEDA;color:#854F0B">C — None/100</div>
+            </div>
+            <table class="info-tbl"><tbody><tr><td class="t-label">Página de login</td><td class="t-val">No detectada en rutas comunes</td></tr></tbody></table>
+            <div class="findings-list"><div class="finding">
+                <div class="finding-head">
+                    <span class="badge" style="background:#E6F1FB;color:#185FA5">INFO</span>
+                    <span class="finding-title">No se detectó página de login en rutas comunes</span>
+                    
+                </div>
+                <div class="finding-desc">No se encontró formulario de login en las rutas estándar. Puede existir en una ruta personalizada.</div>
+                
+            </div></div>
+        </section></div>
+<div class="footer">
+  Auditoría 100% pasiva y no invasiva · v5.0 · Solo información pública · Sin riesgo para el sitio analizado<br>
+  17/05/2026 19:36:46 · https://example.com
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+<script>
+function showSection(id){
+  document.querySelectorAll('.sec-panel').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(el=>el.classList.remove('active'));
+  const panel=document.getElementById('panel-'+id);
+  const tab=document.getElementById('tab-'+id);
+  if(panel)panel.classList.add('active');
+  if(tab)tab.classList.add('active');
+  if(id==='risk_matrix')setTimeout(drawRiskMatrix,50);
+  setTimeout(()=>{
+    const content=document.querySelector('.content');
+    if(content)content.scrollIntoView({behavior:'smooth',block:'start'});
+  },50);
+}
+window.addEventListener('load',()=>{
+  document.querySelectorAll('.cat-fill').forEach(el=>{
+    const w=el.style.width;el.style.width='0';
+    setTimeout(()=>{el.style.width=w;},100);
+  });
+  const ctx=document.getElementById('radarChart').getContext('2d');
+  new Chart(ctx,{
+    type:'radar',
+    data:{
+      labels:["Puertos y WAF", "Cabeceras HTTP", "SSL / TLS", "DNS / Email", "Tecnolog\u00edas", "Contenido HTML", "Archivos p\u00fablicos", "Secretos JS", "Integridad JS (SRI)", "Reputaci\u00f3n", "Login"],
+      datasets:[{
+        label:'Puntuación',
+        data:[90, 50, 85, 95, 100, 100, 95, null, 100, 97, null],
+        backgroundColor:'rgba(91,143,255,0.15)',
+        borderColor:'rgba(91,143,255,0.8)',
+        pointBackgroundColor:'rgba(91,143,255,1)',
+        pointBorderColor:'#fff',
+        pointHoverBackgroundColor:'#fff',
+        pointHoverBorderColor:'rgba(91,143,255,1)',
+        borderWidth:2,
+      }]
+    },
+    options:{
+      scales:{r:{
+        angleLines:{color:'rgba(255,255,255,0.08)'},
+        grid:{color:'rgba(255,255,255,0.08)'},
+        pointLabels:{color:'#9090a8',font:{size:10}},
+        ticks:{display:false},min:0,max:100
+      }},
+      plugins:{legend:{display:false}},
+      elements:{line:{tension:0.1}}
+    }
+  });
+});
+const RISK_POINTS = [{"label": "CDN (Cloudflare) no fuerza HTTPS", "impact": 2, "prob": 3, "sev": "warning", "jitter_x": 0.0, "jitter_y": 0.0}, {"label": "Content-Security-Policy ausente", "impact": 3, "prob": 3, "sev": "warning", "jitter_x": 0.0, "jitter_y": 0.0}, {"label": "HSTS ausente", "impact": 2, "prob": 3, "sev": "critical", "jitter_x": 0.0, "jitter_y": 0.0}, {"label": "X-Frame-Options ausente", "impact": 2, "prob": 2, "sev": "warning", "jitter_x": 0.0, "jitter_y": 0.0}, {"label": "X-Content-Type-Options ausente", "impact": 2, "prob": 2, "sev": "warning", "jitter_x": 0.0, "jitter_y": 0.0}, {"label": "Referrer-Policy ausente", "impact": 1, "prob": 2, "sev": "warning", "jitter_x": 0.0, "jitter_y": 0.0}, {"label": "Permissions-Policy ausente", "impact": 1, "prob": 2, "sev": "warning", "jitter_x": 0.0, "jitter_y": 0.0}, {"label": "Certificado expira pronto (44 d\u00edas)", "impact": 3, "prob": 3, "sev": "warning", "jitter_x": 0.0, "jitter_y": 0.0}];
+let matrixDrawn = false;
+let pointPositions = [];
+function drawRiskMatrix(){
+  if(matrixDrawn)return;
+  matrixDrawn = true;
+  const canvas = document.getElementById('riskMatrix');
+  if(!canvas)return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const PAD = 60, CELL = (Math.min(W, H-20) - PAD*2) / 4;
+  const ZONE_COLORS = [
+    ['rgba(64,212,152,0.18)','rgba(255,179,64,0.15)','rgba(255,100,64,0.18)','rgba(255,91,91,0.22)'],
+    ['rgba(64,212,152,0.12)','rgba(64,212,152,0.18)','rgba(255,179,64,0.18)','rgba(255,100,64,0.22)'],
+    ['rgba(64,212,152,0.08)','rgba(64,212,152,0.12)','rgba(255,179,64,0.15)','rgba(255,179,64,0.22)'],
+    ['rgba(64,212,152,0.05)','rgba(64,212,152,0.08)','rgba(64,212,152,0.12)','rgba(255,179,64,0.18)'],
+  ];
+  for(let row=0;row<4;row++)for(let col=0;col<4;col++){
+    ctx.fillStyle=ZONE_COLORS[3-col][row];
+    ctx.fillRect(PAD+row*CELL,PAD+col*CELL,CELL,CELL);
+  }
+  ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    ctx.beginPath();ctx.moveTo(PAD+i*CELL,PAD);ctx.lineTo(PAD+i*CELL,PAD+4*CELL);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(PAD,PAD+i*CELL);ctx.lineTo(PAD+4*CELL,PAD+i*CELL);ctx.stroke();
+  }
+  ctx.fillStyle='#5a5a72';ctx.font='11px DM Mono,monospace';ctx.textAlign='center';
+  ['1','2','3','4'].forEach((l,i)=>{
+    ctx.fillText(l,PAD+i*CELL+CELL/2,PAD+4*CELL+18);
+    ctx.fillText(l,PAD-18,PAD+(3-i)*CELL+CELL/2+4);
+  });
+  ctx.fillStyle='#9090a8';ctx.font='12px DM Sans,sans-serif';
+  ctx.fillText('PROBABILIDAD',PAD+2*CELL,H-6);
+  ctx.save();ctx.translate(16,PAD+2*CELL);ctx.rotate(-Math.PI/2);ctx.fillText('IMPACTO',0,0);ctx.restore();
+  pointPositions=[];
+  RISK_POINTS.forEach(p=>{
+    const jx=(p.jitter_x||0)*CELL*0.7;
+    const jy=(p.jitter_y||0)*CELL*0.7;
+    const x=PAD+(p.prob-1)*CELL+CELL/2+jx;
+    const y=PAD+(4-p.impact)*CELL+CELL/2+jy;
+    const color=p.sev==='critical'?'#ff5b5b':'#ffb340';
+    const R=7;
+    ctx.beginPath();
+    if(p.sev==='critical')ctx.arc(x,y,R,0,Math.PI*2);
+    else{ctx.moveTo(x,y-R);ctx.lineTo(x+R,y+R*0.6);ctx.lineTo(x-R,y+R*0.6);ctx.closePath();}
+    ctx.fillStyle=color+'cc';ctx.fill();
+    ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.stroke();
+    pointPositions.push({x,y,label:p.label,sev:p.sev,color});
+  });
+  const tooltip=document.getElementById('riskTooltip');
+  canvas.addEventListener('mousemove',e=>{
+    const rect=canvas.getBoundingClientRect();
+    const mx=e.clientX-rect.left,my=e.clientY-rect.top;
+    let found=null;
+    for(const pt of pointPositions){if(Math.sqrt((mx-pt.x)**2+(my-pt.y)**2)<20){found=pt;break;}}
+    if(found){tooltip.style.display='block';tooltip.style.left=(found.x+12)+'px';tooltip.style.top=(found.y-20)+'px';tooltip.style.borderLeft='3px solid '+found.color;tooltip.textContent=found.label;canvas.style.cursor='pointer';}
+    else{tooltip.style.display='none';canvas.style.cursor='default';}
+  });
+  canvas.addEventListener('mouseleave',()=>{tooltip.style.display='none';});
+}
+function scrollNav(dir){document.getElementById('navInner').scrollLeft+=dir*200;}
+</script>
+</body></html>
