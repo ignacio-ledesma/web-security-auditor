@@ -36,11 +36,20 @@ Por cada auditoría se generan automáticamente 4 archivos:
 
 ---
 
+---
+
 ## Ejemplo de informe
 
 Los archivos en este repositorio corresponden a un análisis de **example.com** realizado el 17 de mayo de 2026.
 
-**Resultado:** B — 79/100 | 1 crítico · 9 advertencias · 15 correctos
+**Resultado:** B — 80/100 | 1 crítico · 8 advertencias · 15 correctos
+
+Para ver cómo trabaja el sistema sin descargar archivos, puede revisar la demostración online o abrir los archivos directamente desde el repositorio:
+
+* 🖥️ **[VER REPORTE INTERACTIVO EN VIVO (Recomendado)](https://ignacio-ledesma.github.io/web-security-auditor/)**
+* 📄 **[Ver Resumen Ejecutivo en PDF](./example_com_20260517_193646_v5_ejecutivo.pdf)** *(Ideal para el dueño del negocio)*
+* 🗂️ **[Ver Informe Técnico Completo PDF](./example_com_20260517_193646_v5.pdf)** *(27 páginas de análisis profundo)*
+* ⚙️ **[Ver Estructura de Datos JSON](./example_com_20260517_193646_v5.json)**
 
 ---
 
